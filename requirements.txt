@@ -1,0 +1,6 @@
+opencv-python
+ultralytics
+spotipy
+python-dotenv
+Pillow
+PyQt6
