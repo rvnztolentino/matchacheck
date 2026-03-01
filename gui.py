@@ -153,32 +153,38 @@ class MatchaCheckWindow(QWidget):
         else:
             self.status_line.setText("")
             
-        # Call the detector function
-        is_matcha, confidence, _ = detect_matcha(frame)
+        # Call the detector function with new return signature
+        is_matcha, confidence, _, cup_found = detect_matcha(frame)
         
         # Update confidence bar
         self.confidence_bar.setValue(int(confidence))
         
-        # Show/hide hint text depending on confidence
-        if confidence < 20:
+        # Update Hint and Verdict logic based on cup_found and is_matcha
+        if not cup_found:
             self.hint_label.show()
-        else:
-            self.hint_label.hide()
-            
-        # Handle state transitions
-        if is_matcha and not in_cooldown:
-            self.trigger_performative()
-        elif not is_matcha:
+            self.confidence_bar.setValue(0)
             if self.is_performative:
                 self.sp_player.stop_playback()
                 self.is_performative = False
             self.verdict_label.setText("Not Performative")
             self.verdict_label.setStyleSheet("font-size: 20px; font-weight: bold; color: #888888;")
+        else:
+            self.hint_label.hide()
+            
+            # Handle state transitions
+            if is_matcha and not in_cooldown:
+                self.trigger_performative()
+            elif not is_matcha:
+                if self.is_performative:
+                    self.sp_player.stop_playback()
+                    self.is_performative = False
+                self.verdict_label.setText("❌ Not Performative")
+                self.verdict_label.setStyleSheet("font-size: 20px; font-weight: bold; color: #888888;")
 
     def trigger_performative(self):
         """Handles the sequence of actions when matcha is confirmed detected."""
         self.is_performative = True
-        self.verdict_label.setText("PERFORMATIVE")
+        self.verdict_label.setText("✅ PERFORMATIVE")
         self.verdict_label.setStyleSheet("font-size: 20px; font-weight: bold; color: #1DB954;")
         
         # Visual flare
@@ -218,9 +224,12 @@ class MatchaCheckWindow(QWidget):
         ret, frame = self.cap.read()
         if ret:
             self.process_frame(frame)
-            is_matcha, conf, _ = detect_matcha(frame)
+            is_matcha, conf, _, cup_found = detect_matcha(frame)
             if not is_matcha:
-                self.add_history(f"Not Performative ({conf:.1f}%)")
+                if cup_found:
+                    self.add_history(f"❌ Not Performative ({conf:.1f}%)")
+                else:
+                    self.add_history("No Cup Detected")
                 
     def upload_photo(self):
         """Opens file dialog for testing with an existing image."""
@@ -229,8 +238,13 @@ class MatchaCheckWindow(QWidget):
             frame = cv2.imread(file_path)
             if frame is not None:
                 self.process_frame(frame)
-                is_matcha, conf, _ = detect_matcha(frame)
-                verdict = "PERFORMATIVE" if is_matcha else f"Not Performative ({conf:.1f}%)"
+                is_matcha, conf, _, cup_found = detect_matcha(frame)
+                if is_matcha:
+                    verdict = "✅ PERFORMATIVE"
+                elif cup_found:
+                    verdict = f"❌ Not Performative ({conf:.1f}%)"
+                else:
+                    verdict = "No Cup Detected"
                 self.add_history(verdict)
 
     def closeEvent(self, event):
