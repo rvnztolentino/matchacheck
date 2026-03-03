@@ -32,6 +32,7 @@ class MatchaCheckWindow(QWidget):
         self.cooldown_end_time = 0.0
         self.last_results = []
         self.is_performative = False
+        self._performative_hold_until = 0.0  # holds performative state for 4s
         self._last_frame = None       # for snapshot saving
         self._prev_time = time.time()  # for FPS calculation
 
@@ -322,6 +323,7 @@ class MatchaCheckWindow(QWidget):
         """Analyzes a single frame for matcha and updates UI state accordingly."""
         current_time = time.time()
         in_cooldown = current_time < self.cooldown_end_time
+        in_hold = current_time < self._performative_hold_until
 
         if in_cooldown:
             remaining = int(self.cooldown_end_time - current_time) + 1
@@ -331,6 +333,16 @@ class MatchaCheckWindow(QWidget):
 
         # Call the detector function
         is_matcha, confidence, _, cup_found = detect_matcha(frame)
+
+        # While the 4-second hold is active, keep showing performative state
+        # regardless of whether the cup was removed or detection dropped.
+        if in_hold:
+            self.hint_label.hide()
+            self.confidence_bar.setValue(100)
+            # Re-extend hold if still actively detecting matcha
+            if is_matcha and not in_cooldown:
+                self.trigger_performative()
+            return
 
         # Update confidence bar
         self.confidence_bar.setValue(int(confidence))
@@ -362,6 +374,7 @@ class MatchaCheckWindow(QWidget):
 
     def trigger_performative(self):
         """Handles the sequence of actions when matcha is confirmed detected."""
+        now = time.time()
         self.is_performative = True
         self.verdict_label.setText("PERFORMATIVE")
         self.verdict_label.setStyleSheet(
@@ -374,8 +387,11 @@ class MatchaCheckWindow(QWidget):
         # Run spotify player
         self.sp_player.play_performative()
 
-        # Set 4-second cooldown
-        self.cooldown_end_time = time.time() + 4.0
+        # Set 4-second cooldown (prevents re-triggering Spotify)
+        self.cooldown_end_time = now + 6.0
+
+        # Set 4-second hold: keeps performative state even if cup is removed
+        self._performative_hold_until = now + 6.0
 
         # Save to history
         self.add_history("PERFORMATIVE")
