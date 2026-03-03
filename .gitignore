@@ -2,6 +2,5 @@
 venv/
 __pycache__/
 *.pyc
-model/best.pt
-*.pt
 .DS_Store
+dataset/raw/*
