@@ -19,15 +19,15 @@ MatchaCheck uses a custom-trained YOLOv8 model to detect matcha drinks through y
 
 ## Tech Stack
 
-**Python** - The whole thing  
-**PyQt6** - Desktop GUI with live webcam feed  
-**OpenCV** - Webcam capture and image processing  
-**YOLOv8** - Object detection (custom-trained model)  
-**spotipy** - Spotify Web API wrapper  
-**Spotify Web API** - Playback control for Premium users  
-**Google Colab** - Where the model was trained  
-**Roboflow** - Dataset labeling and management  
-**HSV Masking** - Fallback color-based detection
+- **Python** - The whole thing  
+- **PyQt6** - Desktop GUI with live webcam feed  
+- **OpenCV** - Webcam capture and image processing  
+- **YOLOv8** - Object detection (custom-trained model)  
+- **spotipy** - Spotify Web API wrapper  
+- **Spotify Web API** - Playback control for Premium users  
+- **Google Colab** - Where the model was trained  
+- **Roboflow** - Dataset labeling and management  
+- **HSV Masking** - Fallback color-based detection
 
 ## Setup
 
