@@ -1,10 +1,10 @@
 # MatchaCheck
 
-A Python desktop app that stares at your webcam and decides if you're holding matcha. If you are — congrats, you're *performative*, and here's a Spotify playlist to prove it.
+A Python desktop app that stares at your webcam and decides if you're holding matcha. If you are — congrats, you're *performative*, and here's a Spotify track to prove it.
 
 ## What It Does
 
-MatchaCheck uses a custom-trained YOLOv8 model to detect matcha drinks through your webcam in real time. The default state is always "Not Performative." The **only** thing that flips it to "PERFORMATIVE" is matcha — not coffee, not green juice, not your green phone case. When it detects matcha, it automatically opens a curated Spotify playlist because vibes matter.
+MatchaCheck uses a custom-trained YOLOv8 model to detect matcha drinks through your webcam in real time. The default state is always "Not Performative." The **only** thing that flips it to "PERFORMATIVE" is matcha — not coffee, not green juice, not your green phone case. When it detects matcha, it automatically opens a curated Spotify playlist or Spotify track because vibes matter.
 
 ## Demo
 
@@ -58,7 +58,7 @@ MatchaCheck uses a custom-trained YOLOv8 model to detect matcha drinks through y
    ```
 6. Make sure your trained YOLOv8 model (`best.pt`) is saved in the `model/` directory
 
-## How to Set Your Spotify Playlist
+## How to Set Your Spotify Playlist or Track
 
 1. Go to [Spotify Developer Dashboard](https://developer.spotify.com/dashboard) and create an app
 2. Set the redirect URI to `http://127.0.0.1:8888/callback`
@@ -68,8 +68,4 @@ MatchaCheck uses a custom-trained YOLOv8 model to detect matcha drinks through y
 
 ## Spotify Free vs Premium
 
-If you're on Spotify Free, MatchaCheck will open your playlist in the Spotify app (or browser) when matcha is detected. If you're on Premium, it uses the Spotify Web API to start playback directly on your active device — no window switching needed. Either way, you get music.
-
-## Resume Description
-
-Built a real-time computer vision desktop application using Python, PyQt6, and OpenCV that detects matcha beverages via webcam using a custom-trained YOLOv8 model (trained on Google Colab with Roboflow-managed datasets) with HSV color masking as a fallback detection method. Integrated the Spotify Web API via spotipy for automated playlist playback on detection, with graceful degradation between Premium API control and Free-tier app launching. Designed a polished cross-platform GUI featuring live webcam feed, real-time confidence scoring, FPS monitoring, and animated state transitions.
+If you're on Spotify Free, MatchaCheck will open your playlist or track in the Spotify app (or browser) when matcha is detected. If you're on Premium, it uses the Spotify Web API to start playback directly on your active device — no window switching needed. Either way, you get music.
