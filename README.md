@@ -4,7 +4,7 @@ A Python desktop app that stares at your webcam and decides if you're holding ma
 
 ## What It Does
 
-MatchaCheck uses a custom-trained YOLOv8 model to detect matcha drinks through your webcam in real time. The default state is always "Not Performative." The **only** thing that flips it to "PERFORMATIVE" is matcha — not coffee, not green juice, not your green phone case. When it detects matcha, it automatically opens a curated Spotify playlist or Spotify track because vibes matter.
+MatchaCheck uses a custom-trained YOLOv8 model to detect matcha drinks through your webcam in real time. The default state is always "Not Performative." The **only** thing that flips it to "PERFORMATIVE" is matcha — not coffee, not green juice, not your green phone case. When it detects matcha, it automatically opens a Spotify track because vibes matter.
 
 ## Demo
 
@@ -55,14 +55,14 @@ MatchaCheck uses a custom-trained YOLOv8 model to detect matcha drinks through y
    ```
 6. Make sure your trained YOLOv8 model (`best.pt`) is saved in the `model/` directory
 
-## How to Set Your Spotify Playlist or Track
+## How to Set Your Spotify Track
 
 1. Go to [Spotify Developer Dashboard](https://developer.spotify.com/dashboard) and create an app
 2. Set the redirect URI to `http://127.0.0.1:8888/callback`
 3. Copy your Client ID and Client Secret into `.env`
-4. Grab the URL of any Spotify playlist or track and paste it into `SPOTIFY_PERFORMATIVE_URL`
-5. For Premium users: also paste the `spotify:playlist:...` URI into `SPOTIFY_PERFORMATIVE_URI`
+4. Grab the URL of any Spotify track and paste it into `SPOTIFY_PERFORMATIVE_URL`
+5. For Premium users: also paste the `spotify:track:...` URI into `SPOTIFY_PERFORMATIVE_URI`
 
 ## Spotify Free vs Premium
 
-If you're on Spotify Free, MatchaCheck will open your playlist or track in the Spotify app (or browser) when matcha is detected. If you're on Premium, it uses the Spotify Web API to start playback directly on your active device — no window switching needed. Either way, you get music.
+If you're on Spotify Free, MatchaCheck will open your track in the Spotify app (or browser) when matcha is detected. If you're on Premium, it uses the Spotify Web API to start playback directly on your active device — no window switching needed. Either way, you get music.
