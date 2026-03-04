@@ -1,15 +1,55 @@
 import sys
 import os
 import time
-import cv2
+
 from pathlib import Path
-from PyQt6.QtWidgets import (QWidget, QLabel, QVBoxLayout, QHBoxLayout,
-                             QPushButton, QProgressBar, QListWidget,
-                             QFileDialog, QFrame, QMenu)
-from PyQt6.QtCore import (QTimer, Qt, QPropertyAnimation, QEasingCurve,
-                          QRect, pyqtProperty)
-from PyQt6.QtGui import (QImage, QPixmap,
-                         QAction, QPainter, QFont, QColor)
+
+import cv2
+import numpy as np
+
+# MediaPipe tasks API (0.10.x+)
+_mp_available = False
+_mp_vision = None
+_mp_drawing_utils = None
+_mp_base_options = None
+_mp_hand_connections = None
+try:
+    import mediapipe as mp
+    from mediapipe.tasks.python import vision as _mp_vision
+    from mediapipe.tasks.python.core.base_options import BaseOptions as _mp_base_options
+    _mp_drawing_utils = _mp_vision.drawing_utils
+    _mp_hand_connections = _mp_vision.HandLandmarksConnections.HAND_CONNECTIONS
+    _mp_available = True
+except Exception:
+    pass
+from PyQt6.QtWidgets import (
+    QWidget,
+    QLabel,
+    QVBoxLayout,
+    QHBoxLayout,
+    QPushButton,
+    QProgressBar,
+    QListWidget,
+    QFileDialog,
+    QFrame,
+    QMenu,
+)
+from PyQt6.QtCore import (
+    QTimer,
+    Qt,
+    QPropertyAnimation,
+    QEasingCurve,
+    QRect,
+    pyqtProperty,
+)
+from PyQt6.QtGui import (
+    QImage,
+    QPixmap,
+    QAction,
+    QPainter,
+    QFont,
+    QColor,
+)
 
 import detector
 from detector import detect_matcha, get_mode, set_mode
@@ -37,6 +77,31 @@ class MatchaCheckWindow(QWidget):
         self._performative_hold_until = 0.0  # holds performative state for 4s
         self._last_frame = None       # for snapshot saving
         self._prev_time = time.time()  # for FPS calculation
+
+        # Hand / finger tracking (MediaPipe HandLandmarker – tasks API)
+        self._hand_landmarker = None
+        if _mp_available:
+            try:
+                model_path = os.path.join("model", "hand_landmarker.task")
+                if not os.path.exists(model_path):
+                    raise FileNotFoundError(
+                        f"{model_path} not found. Add hand_landmarker.task to the model/ directory."
+                    )
+
+                options = _mp_vision.HandLandmarkerOptions(
+                    base_options=_mp_base_options(model_asset_path=model_path),
+                    running_mode=_mp_vision.RunningMode.VIDEO,
+                    num_hands=2,
+                    min_hand_detection_confidence=0.5,
+                    min_hand_presence_confidence=0.5,
+                    min_tracking_confidence=0.5,
+                )
+                self._hand_landmarker = _mp_vision.HandLandmarker.create_from_options(options)
+                self._frame_ts_ms = 0
+                print("MediaPipe HandLandmarker initialized successfully.")
+            except Exception as e:
+                print(f"MediaPipe HandLandmarker init failed: {e}")
+                self._hand_landmarker = None
 
         self.init_ui()
 
@@ -303,6 +368,9 @@ class MatchaCheckWindow(QWidget):
         fps = int(1.0 / dt) if dt > 0 else 0
         self.fps_label.setText(f"{fps} FPS")
 
+        # Draw hand / finger lines using MediaPipe Hands
+        self._annotate_hands(frame)
+
         # Process the live frame for matcha detection
         self.process_frame(frame)
 
@@ -320,6 +388,37 @@ class MatchaCheckWindow(QWidget):
             pixmap.scaled(target, Qt.AspectRatioMode.KeepAspectRatio,
                           Qt.TransformationMode.SmoothTransformation)
         )
+
+    def _annotate_hands(self, frame):
+        """Runs MediaPipe HandLandmarker on the frame and draws finger/hand connections."""
+        if self._hand_landmarker is None:
+            return
+
+        rgb_frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
+        mp_image = mp.Image(image_format=mp.ImageFormat.SRGB, data=rgb_frame)
+
+        self._frame_ts_ms += 33  # approximate 30 fps timestamps
+        try:
+            results = self._hand_landmarker.detect_for_video(mp_image, self._frame_ts_ms)
+        except Exception:
+            return
+
+        if not results.hand_landmarks:
+            return
+
+        # Fingertip landmark indices (thumb, index, middle, ring, pinky)
+        _FINGERTIPS = {4, 8, 12, 16, 20}
+
+        for landmarks in results.hand_landmarks:
+            h, w = frame.shape[:2]
+            pts = [(int(lm.x * w), int(lm.y * h)) for lm in landmarks]
+            # White connection lines
+            for conn in _mp_hand_connections:
+                cv2.line(frame, pts[conn.start], pts[conn.end], (255, 255, 255), 2)
+            # Green dots for joints, red dots for fingertips
+            for i, pt in enumerate(pts):
+                color = (0, 0, 220) if i in _FINGERTIPS else (0, 200, 0)
+                cv2.circle(frame, pt, 4, color, -1)
 
     def process_frame(self, frame):
         """Analyzes a single frame for matcha and updates UI state accordingly."""
@@ -433,4 +532,6 @@ class MatchaCheckWindow(QWidget):
     def closeEvent(self, event):
         """Clean up resources on exit."""
         self.cap.release()
+        if self._hand_landmarker is not None:
+            self._hand_landmarker.close()
         event.accept()
