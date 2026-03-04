@@ -352,6 +352,7 @@ class MatchaCheckWindow(QWidget):
         # Update Hint and Verdict logic based on cup_found and is_matcha
         if not cup_found:
             self.hint_label.show()
+            self.hint_label.setText("Show me your matcha")
             self.confidence_bar.setValue(0)
             if self.is_performative:
                 self.sp_player.stop_playback()
@@ -361,11 +362,12 @@ class MatchaCheckWindow(QWidget):
                 "font-size: 20px; font-weight: bold; color: #888888;"
             )
         else:
-            self.hint_label.hide()
-
             if is_matcha and not in_cooldown:
+                self.hint_label.hide()
                 self.trigger_performative()
             elif not is_matcha:
+                self.hint_label.show()
+                self.hint_label.setText("Not a matcha :(")
                 if self.is_performative:
                     self.sp_player.stop_playback()
                     self.is_performative = False
