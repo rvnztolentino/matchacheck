@@ -1,5 +1,6 @@
 opencv-python
 ultralytics
+mediapipe
 spotipy
 python-dotenv
 Pillow
