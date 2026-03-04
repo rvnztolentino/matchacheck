@@ -24,6 +24,8 @@ class MatchaCheckWindow(QWidget):
         self.setWindowTitle("MatchaCheck")
         self.setFixedSize(1000, 620)
         self.setStyleSheet("background-color: #121212; color: #FFFFFF;")
+        # Keeps the window on top of all other windows (Remove this if you don't want this)
+        self.setWindowFlag(Qt.WindowType.WindowStaysOnTopHint)
 
         # App state variables
         # Default to HSV mode
