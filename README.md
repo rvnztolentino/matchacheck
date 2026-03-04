@@ -13,7 +13,8 @@ MatchaCheck uses a custom-trained YOLOv8 model to detect matcha drinks through y
 ## How It Works
 
 - Grabs frames from your webcam at ~30 FPS
-- Runs each frame through a custom YOLOv8 model trained specifically on matcha drinks (with HSV color detection as a fallback)
+- Runs each frame through a YOLOv8 model (default: yolov8n.pt with HSV color detection)
+- You can switch to your own custom-trained model (best.pt) using the toggle button in the app
 - If the model detects matcha with >60% confidence → you're PERFORMATIVE
 - Spotify playback kicks in automatically — Premium users get API control, Free users get the app opened
 
