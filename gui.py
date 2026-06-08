@@ -51,8 +51,7 @@ from PyQt6.QtGui import (
     QColor,
 )
 
-import detector
-from detector import detect_matcha, get_mode, set_mode
+from detector import detect_matcha
 
 
 class MatchaCheckWindow(QWidget):
@@ -68,8 +67,6 @@ class MatchaCheckWindow(QWidget):
         self.setWindowFlag(Qt.WindowType.WindowStaysOnTopHint)
 
         # App state variables
-        # Default to HSV mode
-        detector.set_mode('hsv')
         self.cap = cv2.VideoCapture(0)
         self.cooldown_end_time = 0.0
         self.last_results = []
@@ -211,22 +208,6 @@ class MatchaCheckWindow(QWidget):
         self.upload_btn.clicked.connect(self.upload_photo)
         right_layout.addWidget(self.upload_btn)
 
-        # Mode indicator label (read-only display)
-        self.mode_label = QLabel()
-        self.mode_label.setStyleSheet(
-            "color: #AAAAAA; font-size: 11px; font-style: italic;"
-        )
-        right_layout.addWidget(self.mode_label)
-
-        # Model toggle button
-        self.toggle_btn = QPushButton()
-        self._update_toggle_label()
-        self.toggle_btn.setStyleSheet(
-            "background-color: #333333; padding: 10px; border-radius: 5px;"
-        )
-        self.toggle_btn.clicked.connect(self._toggle_model)
-        right_layout.addWidget(self.toggle_btn)
-
         # Recent results history
         history_label = QLabel("Recent Results:")
         history_label.setStyleSheet("font-size: 14px; margin-top: 10px;")
@@ -275,28 +256,6 @@ class MatchaCheckWindow(QWidget):
         self._splash_anim.setEasingCurve(QEasingCurve.Type.InQuad)
         self._splash_anim.finished.connect(self.splash_overlay.hide)
         self._splash_anim.start()
-
-    # ------------------------------------------------------------------
-    # Model toggle
-    # ------------------------------------------------------------------
-    def _update_toggle_label(self):
-        mode = get_mode()
-        if mode == "custom":
-            self.toggle_btn.setText("Switch to HSV")
-            self.mode_label.setText("Active mode: Custom Model")
-        else:
-            self.toggle_btn.setText("Switch to Custom Model")
-            self.mode_label.setText("Active mode: HSV Detection")
-
-    def _toggle_model(self):
-        current = get_mode()
-        try:
-            new_mode = "hsv" if current == "custom" else "custom"
-            set_mode(new_mode)
-        except RuntimeError:
-            # Custom model not available — stay on HSV
-            pass
-        self._update_toggle_label()
 
     # ------------------------------------------------------------------
     # Context menu (right-click on webcam feed)
