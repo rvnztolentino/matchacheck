@@ -1,69 +1,84 @@
 # MatchaCheck
 
-A Python desktop app that stares at your webcam and decides if you're holding matcha. If you are — congrats, you're *performative*, and here's a Spotify track to prove it.
-
-## What It Does
-
-MatchaCheck uses a custom-trained YOLOv8 model to detect matcha drinks through your webcam in real time. The default state is always "Not Performative." The **only** thing that flips it to "PERFORMATIVE" is matcha — not coffee, not green juice, not your green phone case. When it detects matcha, it automatically opens a Spotify track because vibes matter.
-
-## Demo
-
-![demo](demo.gif)
-
-## How It Works
-
-- Grabs frames from your webcam at ~30 FPS
-- Runs each frame through a YOLOv8 model (default: yolov8n.pt with HSV color detection)
-- You can switch to your own custom-trained model (best.pt) using the toggle button in the app
-- If the model detects matcha with >60% confidence → you're PERFORMATIVE
-- Spotify playback kicks in automatically — Premium users get API control, Free users get the app opened
+MatchaCheck is a Python desktop app that watches your webcam for matcha-like green color. When matcha is detected, the app marks the moment as `PERFORMATIVE` and opens or controls a configured Spotify track.
 
 ## Tech Stack
 
-- **Python** - The whole thing  
-- **PyQt6** - Desktop GUI with live webcam feed  
-- **OpenCV** - Webcam capture and image processing  
-- **YOLOv8** - Object detection (with custom-trained model)  
-- **MediaPipe HandLandmarker** - Real-time hand tracking overlay (optional) 
-- **spotipy** - Spotify Web API wrapper  
-- **Spotify Web API** - Playback control for Premium users
-- **HSV Masking** - Fallback color-based detection
+- Python
+- PyQt6 for the desktop interface
+- OpenCV for webcam capture and image processing
+- HSV color masking for matcha-like color detection
+- MediaPipe HandLandmarker for optional hand overlay
+- spotipy and Spotify Web API for playback control
+- python-dotenv for local `.env` configuration
 
-## Setup
+## Setup Instructions
 
-1. Clone the repo
+1. Clone the repository.
+
    ```bash
    git clone https://github.com/rvnztolentino/matchacheck.git
    cd matchacheck
    ```
-2. Create a virtual environment and activate it
+
+2. Create and activate a virtual environment.
+
    ```bash
-   python -m venv venv
-   source venv/bin/activate  # Mac/Linux
-   venv\Scripts\activate     # Windows
+   python3 -m venv venv
+   source venv/bin/activate
    ```
-3. Install dependencies
+
+3. Upgrade `pip`.
+
    ```bash
-   pip install -r requirements.txt
+   python -m pip install --upgrade pip
    ```
-4. Copy `.env.example` to `.env` and fill in your Spotify credentials
+
+4. Install the project dependencies.
+
+   ```bash
+   python -m pip install -r requirements.txt
+   ```
+
+5. Create your local environment file.
+
    ```bash
    cp .env.example .env
    ```
-5. Run it
-   ```bash
-   python main.py
-   ```
-6. Make sure your trained YOLOv8 model (`best.pt`) is saved in the `model/` directory
 
-## How to Set Your Spotify Track
+6. Edit `.env` with your Spotify settings.
 
-1. Go to [Spotify Developer Dashboard](https://developer.spotify.com/dashboard) and create an app
-2. Set the redirect URI to `http://127.0.0.1:8888/callback`
-3. Copy your Client ID and Client Secret into `.env`
-4. Grab the URL of any Spotify track and paste it into `SPOTIFY_PERFORMATIVE_URL`
-5. For Premium users: also paste the `spotify:track:...` URI into `SPOTIFY_PERFORMATIVE_URI`
+## Configuration
 
-## Spotify Free vs Premium
+MatchaCheck reads Spotify settings from `.env`.
 
-If you're on Spotify Free, MatchaCheck will open your track in the Spotify app (or browser) when matcha is detected. If you're on Premium, it uses the Spotify Web API to start playback directly on your active device — no window switching needed. Either way, you get music.
+```bash
+SPOTIFY_CLIENT_ID=your_client_id_here
+SPOTIFY_CLIENT_SECRET=your_client_secret_here
+SPOTIFY_REDIRECT_URI=http://127.0.0.1:8888/callback
+SPOTIFY_PERFORMATIVE_URL=https://open.spotify.com/track/YOUR_TRACK_ID
+SPOTIFY_PERFORMATIVE_URI=spotify:track:YOUR_TRACK_ID
+```
+
+Create a Spotify app in the [Spotify Developer Dashboard](https://developer.spotify.com/dashboard), then add `http://127.0.0.1:8888/callback` as the redirect URI.
+
+`SPOTIFY_PERFORMATIVE_URL` is used to open Spotify in the app or browser. `SPOTIFY_PERFORMATIVE_URI` is used for direct playback through the Spotify Web API, which requires Spotify Premium and an active Spotify device.
+
+## How to Run
+
+Activate the virtual environment, install dependencies, then start the app:
+
+```bash
+source venv/bin/activate
+python -m pip install -r requirements.txt
+python main.py
+```
+
+On first run, macOS may ask for camera permission. Allow access so the webcam feed can start.
+
+## Notes
+
+- Keep `model/hand_landmarker.task` in the `model/` directory if you want the optional hand overlay.
+- Matcha detection is based on OpenCV HSV color masking.
+- If you see `ModuleNotFoundError: No module named 'dotenv'`, install dependencies into the active virtual environment with `python -m pip install -r requirements.txt`.
+- Spotify playback falls back to opening the configured track URL when direct Premium playback is unavailable.
